@@ -16,10 +16,20 @@ class IsolationTest(unittest.TestCase):
 
     def setUp(self):
         reload(game_agent)
-        self.player1 = "Player1"
-        self.player2 = "Player2"
+        self.player1 = game_agent.MinimaxPlayer()
+        self.player2 = game_agent.MinimaxPlayer()
         self.game = isolation.Board(self.player1, self.player2)
 
+    def test_gameplay(self):
+    	winner, history, outcome = self.game.play()
+    	self.assertIn(outcome, ["timeout", "forfeit", "illegal move"])
+
+
+    """def test_isint(self):
+    	self.assertEqual(1, self.player1.max_value(self.game, 3))
+
+    def test_istuple(self):
+    	self.assertEqual((1, 1), self.player1.minimax(self.game, 3))"""
 
 if __name__ == '__main__':
     unittest.main()

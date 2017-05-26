@@ -35,6 +35,14 @@ def custom_score(game, player):
         The heuristic value of the current game state to the specified player.
     """
     # TODO: finish this function!
+
+    if game.is_winner(player):
+    	return float("inf")
+    elif game.is_loser(player):
+    	return float("-inf")
+    else:
+    	return 0
+
     raise NotImplementedError
 
 
@@ -209,11 +217,66 @@ class MinimaxPlayer(IsolationPlayer):
                 each helper function or else your agent will timeout during
                 testing.
         """
+
+        # check for time left
         if self.time_left() < self.TIMER_THRESHOLD:
-            raise SearchTimeout()
+        	raise SearchTimeout()
+
+        # return (-1, -1) if no legal moves
+        legal_moves = game.get_legal_moves()
+        if not legal_moves:
+        	return (-1, -1)
+        
+        # return move with max state score among opponent's min state scores
+        opponent = game.get_opponent(self)
+        max_value = float("-inf")
+        best_move = (0, 0)
+        for move in legal_moves:
+        	value = self.min_value(opponent, game.forecast_move(move), depth-1)
+        	if value > max_value:
+        		max_value = value
+        		best_move = move
+        return best_move
 
         # TODO: finish this function!
         raise NotImplementedError
+
+    def max_value(self, game, depth):
+    	# check for time left
+    	if self.time_left() < self.TIMER_THRESHOLD:
+        	raise SearchTimeout()
+
+        # return state score for base case (terminal game state or max depth)
+    	opponent = game.get_opponent(self)
+    	legal_moves = game.get_legal_moves()
+    	if not legal_moves or depth == 0:
+    		return self.score(game, self)
+    	
+    	# return max state score among opponent's state scores
+    	value = float("-inf")
+    	for move in legal_moves:
+    		value = max(value, 
+    					self.min_value(opponent, game.forecast_move(move), depth-1))
+    	return value
+
+    def min_value(self, opponent, game, depth):
+    	# check for time left
+    	if self.time_left() < self.TIMER_THRESHOLD:
+        	raise SearchTimeout()
+
+        # return state score for base case (terminal game state or max depth)
+    	legal_moves = game.get_legal_moves(opponent)
+    	if not legal_moves or depth == 0:
+    		return opponent.score(game, opponent)
+
+    	# return opponent's min state score among player's state scores
+    	value = float("inf")
+    	for move in legal_moves:
+    		value = min(value, 
+    					self.max_value(game.forecast_move(move), depth-1))
+    	return value
+
+    	
 
 
 class AlphaBetaPlayer(IsolationPlayer):
