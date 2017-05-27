@@ -267,7 +267,7 @@ class MinimaxPlayer(IsolationPlayer):
         # return state score for base case (terminal game state or max depth)
     	legal_moves = game.get_legal_moves(opponent)
     	if not legal_moves or depth == 0:
-    		return self.score(game, opponent)
+    		return self.score(game, self)
 
     	# return opponent's min state score among player's state scores
     	value = float("inf")
