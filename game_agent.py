@@ -41,7 +41,7 @@ def custom_score(game, player):
     elif game.is_loser(player):
     	return float("-inf")
     else:
-    	return 0
+    	return float(len(game.get_legal_moves(player)))
 
     raise NotImplementedError
 
@@ -217,7 +217,7 @@ class MinimaxPlayer(IsolationPlayer):
                 each helper function or else your agent will timeout during
                 testing.
         """
-
+        
         # check for time left
         if self.time_left() < self.TIMER_THRESHOLD:
         	raise SearchTimeout()
@@ -267,7 +267,7 @@ class MinimaxPlayer(IsolationPlayer):
         # return state score for base case (terminal game state or max depth)
     	legal_moves = game.get_legal_moves(opponent)
     	if not legal_moves or depth == 0:
-    		return opponent.score(game, opponent)
+    		return self.score(game, opponent)
 
     	# return opponent's min state score among player's state scores
     	value = float("inf")
