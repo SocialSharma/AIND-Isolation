@@ -43,8 +43,6 @@ def custom_score(game, player):
     else:
     	return float(len(game.get_legal_moves(player)))
 
-    raise NotImplementedError
-
 
 def custom_score_2(game, player):
     """Calculate the heuristic value of a game state from the point of view
@@ -238,10 +236,26 @@ class MinimaxPlayer(IsolationPlayer):
         		best_move = move
         return best_move
 
-        # TODO: finish this function!
-        raise NotImplementedError
-
     def max_value(self, game, depth):
+    	"""This is a helper function for the depth-limited minimax algorithm. 
+
+		Parameters
+		----------
+		game : isolation.Board
+			And instance of the Isolation game 'Board' class representing the
+			current game state
+
+		depth : int
+			Depth is an integer representing the maximum number of plies to 
+			search in the game tree before aborting
+
+		Returns
+		-------
+		int
+			This is a state utility value obtained at a terminal game state that
+			will propogate backwards through the game tree. 
+    	"""
+
     	# check for time left
     	if self.time_left() < self.TIMER_THRESHOLD:
         	raise SearchTimeout()
@@ -256,15 +270,35 @@ class MinimaxPlayer(IsolationPlayer):
     	value = float("-inf")
     	for move in legal_moves:
     		value = max(value, 
-    					self.min_value(opponent, game.forecast_move(move), depth-1))
+    					self.min_value(game.forecast_move(move), depth-1))
     	return value
 
-    def min_value(self, opponent, game, depth):
+    def min_value(self, game, depth):
+    	"""This is a helper function for the depth-limited minimax algorithm. 
+
+		Parameters
+		----------
+		game : isolation.Board
+			And instance of the Isolation game 'Board' class representing the
+			current game state
+
+		depth : int
+			Depth is an integer representing the maximum number of plies to 
+			search in the game tree before aborting
+
+		Returns
+		-------
+		int
+			This is a state utility value obtained at a terminal game state that 
+			will propogate backwards through the game tree. 
+    	"""
+
     	# check for time left
     	if self.time_left() < self.TIMER_THRESHOLD:
         	raise SearchTimeout()
 
         # return state score for base case (terminal game state or max depth)
+    	opponent = game.get_opponent(self)
     	legal_moves = game.get_legal_moves(opponent)
     	if not legal_moves or depth == 0:
     		return self.score(game, self)
@@ -277,8 +311,6 @@ class MinimaxPlayer(IsolationPlayer):
     	return value
 
     	
-
-
 class AlphaBetaPlayer(IsolationPlayer):
     """Game-playing agent that chooses a move using iterative deepening minimax
     search with alpha-beta pruning. You must finish and test this player to
@@ -368,5 +400,30 @@ class AlphaBetaPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        # TODO: finish this function!
-        raise NotImplementedError
+    def max_value(self, game, depth, alpha, beta):
+    	opponent = game.get_opponent(self)
+    	legal_moves = game.get_legal_moves(self)
+    	if not legal moves or depth == 0:
+    		return self.score(game, self)
+    	
+    	value = float("-inf")
+    	for move in legal_moves:
+    		value = max(value, self.min_value(game, depth-1, alpha, beta))
+    		if value >= beta:
+    			return value
+    		alpha = max(alpha, value)
+    	return value
+
+    def min_value(self, game, depth, alpha, beta):
+    	opponent = game.get_opponent(self)
+    	legal_moves = game.get_legal_moves(opponent)
+    	if not legal moves or depth == 0:
+    		return self.score(game, self)
+    	
+    	value = float("-inf")
+    	for move in legal_moves:
+    		value = min(value, self.min_value(game, depth-1, alpha, beta))
+    		if value <= alpha:
+    			return value
+    		beta = min(beta, value)
+    	return value
