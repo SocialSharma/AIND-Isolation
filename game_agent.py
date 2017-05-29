@@ -226,11 +226,10 @@ class MinimaxPlayer(IsolationPlayer):
         	return (-1, -1)
         
         # return move with max state score among opponent's min state scores
-        opponent = game.get_opponent(self)
         max_value = float("-inf")
         best_move = (0, 0)
         for move in legal_moves:
-        	value = self.min_value(opponent, game.forecast_move(move), depth-1)
+        	value = self.min_value(game.forecast_move(move), depth-1)
         	if value > max_value:
         		max_value = value
         		best_move = move
@@ -261,7 +260,6 @@ class MinimaxPlayer(IsolationPlayer):
         	raise SearchTimeout()
 
         # return state score for base case (terminal game state or max depth)
-    	opponent = game.get_opponent(self)
     	legal_moves = game.get_legal_moves()
     	if not legal_moves or depth == 0:
     		return self.score(game, self)
@@ -347,10 +345,24 @@ class AlphaBetaPlayer(IsolationPlayer):
             Board coordinates corresponding to a legal move; may return
             (-1, -1) if there are no available legal moves.
         """
+
         self.time_left = time_left
 
-        # TODO: finish this function!
-        raise NotImplementedError
+        # Initialize the best move so that this function returns something
+        # in case the search fails due to timeout
+        best_move = (-1, -1)
+
+        try:
+            # The try/except block will automatically catch the exception
+            # raised when the timer is about to expire.
+            return self.alphabeta(game, self.search_depth)
+
+        except SearchTimeout:
+            pass  # Handle any actions required after timeout as needed
+
+        # Return the best move from the last completed search iteration
+        return best_move
+
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf")):
         """Implement depth-limited minimax search with alpha-beta pruning as
@@ -397,33 +409,67 @@ class AlphaBetaPlayer(IsolationPlayer):
                 each helper function or else your agent will timeout during
                 testing.
         """
+
+        # check for time left
         if self.time_left() < self.TIMER_THRESHOLD:
+             raise SearchTimeout()
+
+        # Store alpha beta variables in an empty class instance to ensure
+        # access in local namespaces
+        class ScopeFree:
+        	pass
+
+        bounds = ScopeFree()
+        bounds.alpha = alpha
+        bounds.beta = beta
+
+        # return (-1, -1) if no legal moves
+        legal_moves = game.get_legal_moves(self)
+        if not legal_moves:
+        	return (-1, -1)
+
+        # return move with max state score among opponent's min state scores
+        max_value = self.max_value(game, depth, bounds)
+        for move in legal_moves:
+        	value = self.min_value(game.forecast_move(move), depth-1, bounds)
+        	if value == max_value:
+        		return move
+
+    def max_value(self, game, depth, bounds):
+    	if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-    def max_value(self, game, depth, alpha, beta):
-    	opponent = game.get_opponent(self)
     	legal_moves = game.get_legal_moves(self)
-    	if not legal moves or depth == 0:
+    	if not legal_moves or depth == 0:
     		return self.score(game, self)
     	
     	value = float("-inf")
     	for move in legal_moves:
-    		value = max(value, self.min_value(game, depth-1, alpha, beta))
-    		if value >= beta:
+    		value = max(value, 
+    					self.min_value(game.forecast_move(move), 
+    								   depth-1, 
+    								   bounds))
+    		if value >= bounds.beta:
     			return value
-    		alpha = max(alpha, value)
+    		bounds.alpha = max(bounds.alpha, value)
     	return value
 
-    def min_value(self, game, depth, alpha, beta):
+    def min_value(self, game, depth, bounds):
+    	if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+
     	opponent = game.get_opponent(self)
     	legal_moves = game.get_legal_moves(opponent)
-    	if not legal moves or depth == 0:
+    	if not legal_moves or depth == 0:
     		return self.score(game, self)
     	
-    	value = float("-inf")
+    	value = float("inf")
     	for move in legal_moves:
-    		value = min(value, self.min_value(game, depth-1, alpha, beta))
-    		if value <= alpha:
+    		value = min(value, 
+    					self.max_value(game.forecast_move(move), 
+    								   depth-1, 
+    								   bounds))
+    		if value <= bounds.alpha:
     			return value
-    		beta = min(beta, value)
+    		bounds.beta = min(bounds.beta, value)
     	return value
