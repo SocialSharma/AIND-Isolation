@@ -118,7 +118,7 @@ class IsolationPlayer:
         positive value large enough to allow the function to return before the
         timer expires.
     """
-    def __init__(self, search_depth=3, score_fn=custom_score, timeout=10.):
+    def __init__(self, search_depth=4, score_fn=custom_score, timeout=10.):
         self.search_depth = search_depth
         self.score = score_fn
         self.time_left = None
@@ -355,6 +355,12 @@ class AlphaBetaPlayer(IsolationPlayer):
         try:
             # The try/except block will automatically catch the exception
             # raised when the timer is about to expire.
+            # depth = 0
+            # best_move = (-1, -1)
+            # while time_left > 0
+            #     best_move = self.alphabeta(game, depth)
+            #     depth += 1
+            # return best_move
             return self.alphabeta(game, self.search_depth)
 
         except SearchTimeout:
@@ -416,26 +422,39 @@ class AlphaBetaPlayer(IsolationPlayer):
 
         # Store alpha beta variables in an empty class instance to ensure
         # access in local namespaces
-        class ScopeFree:
+        """class ScopeFree:
         	pass
 
         bounds = ScopeFree()
         bounds.alpha = alpha
-        bounds.beta = beta
+        bounds.beta = beta"""
 
         # return (-1, -1) if no legal moves
         legal_moves = game.get_legal_moves(self)
         if not legal_moves:
         	return (-1, -1)
 
-        # return move with max state score among opponent's min state scores
-        max_value = self.max_value(game, depth, bounds)
+        alpha = alpha
+        best_move = (0, 0)
         for move in legal_moves:
-        	value = self.min_value(game.forecast_move(move), depth-1, bounds)
-        	if value == max_value:
-        		return move
+        	value = self.min_value(game.forecast_move(move), depth-1, alpha, beta)
+        	if value > alpha:
+        		alpha = value
+        		best_move = move
+        return best_move
 
-    def max_value(self, game, depth, bounds):
+        """# return move with max state score among opponent's min state scores
+        max_value = self.max_value(game, depth, alpha, beta)
+        # print(max_value)
+        for move in legal_moves:
+        	# print(move)
+        	value = self.min_value(game.forecast_move(move), depth-1, alpha, beta)
+        	if value == max_value:
+        		print(alpha, beta) # print bounds for debugging
+        		return move"""
+
+    def max_value(self, game, depth, alpha, beta):
+    	# check for time left
     	if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
@@ -448,13 +467,15 @@ class AlphaBetaPlayer(IsolationPlayer):
     		value = max(value, 
     					self.min_value(game.forecast_move(move), 
     								   depth-1, 
-    								   bounds))
-    		if value >= bounds.beta:
+    								   alpha, beta))
+    		if value >= beta:
     			return value
-    		bounds.alpha = max(bounds.alpha, value)
+    		alpha = max(alpha, value)
+    		# print("Max:", value, bounds.alpha, bounds.beta) # print bounds for debugging
     	return value
 
-    def min_value(self, game, depth, bounds):
+    def min_value(self, game, depth, alpha, beta):
+    	# check for time left
     	if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
@@ -468,8 +489,9 @@ class AlphaBetaPlayer(IsolationPlayer):
     		value = min(value, 
     					self.max_value(game.forecast_move(move), 
     								   depth-1, 
-    								   bounds))
-    		if value <= bounds.alpha:
+    								   alpha, beta))
+    		if value <= alpha:
     			return value
-    		bounds.beta = min(bounds.beta, value)
+    		beta = min(beta, value)
+    		# print("Min:", value, alpha, beta) # print bounds for debugging
     	return value
