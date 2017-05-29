@@ -227,7 +227,7 @@ class MinimaxPlayer(IsolationPlayer):
         
         # return move with max state score among opponent's min state scores
         max_value = float("-inf")
-        best_move = (0, 0)
+        best_move = (-1, -1)
         for move in legal_moves:
         	value = self.min_value(game.forecast_move(move), depth-1)
         	if value > max_value:
@@ -355,13 +355,13 @@ class AlphaBetaPlayer(IsolationPlayer):
         try:
             # The try/except block will automatically catch the exception
             # raised when the timer is about to expire.
-            # depth = 0
-            # best_move = (-1, -1)
-            # while time_left > 0
-            #     best_move = self.alphabeta(game, depth)
-            #     depth += 1
-            # return best_move
-            return self.alphabeta(game, self.search_depth)
+            depth = 0
+            best_move = (-1, -1)
+            while time_left() > 0.1:
+                best_move = self.alphabeta(game, depth)
+                depth += 1
+                print(depth, best_move)
+            return best_move
 
         except SearchTimeout:
             pass  # Handle any actions required after timeout as needed
