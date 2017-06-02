@@ -38,10 +38,12 @@ def custom_score(game, player):
 
     if game.is_winner(player):
     	return float("inf")
-    elif game.is_loser(player):
+    if game.is_loser(player):
     	return float("-inf")
-    else:
-    	return float(len(game.get_legal_moves(player)))
+    
+    own_moves = len(game.get_legal_moves(player))
+    opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
+    return float(own_moves - opp_moves)
 
 
 def custom_score_2(game, player):
@@ -67,7 +69,14 @@ def custom_score_2(game, player):
         The heuristic value of the current game state to the specified player.
     """
     # TODO: finish this function!
-    raise NotImplementedError
+    if game.is_loser(player):
+        return float("-inf")
+    if game.is_winner(player):
+        return float("inf")
+
+    own_moves = len(game.get_legal_moves(player))
+    opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
+    return float(own_moves - (2*opp_moves))
 
 
 def custom_score_3(game, player):
@@ -93,7 +102,29 @@ def custom_score_3(game, player):
         The heuristic value of the current game state to the specified player.
     """
     # TODO: finish this function!
-    raise NotImplementedError
+
+    if game.is_loser(player):
+        return float("-inf")
+    if game.is_winner(player):
+        return float("inf")
+
+    return float(len(game.get_legal_moves(player)))
+
+    """blank_spaces = len(game.get_blank_spaces())
+
+    if blank_spaces > 35:
+    	return custom_score(game, player)
+    if blank_spaces > 20:
+    	return custom_score_2(game, player)
+    else:
+    	if game.is_loser(player):
+    		return float("-inf")
+    	if game.is_winner(player):
+    		return float("inf")
+
+    	own_moves = len(game.get_legal_moves(player))
+    	opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
+    	return float((2*own_moves) - (opp_moves))"""
 
 
 class IsolationPlayer:
@@ -118,7 +149,7 @@ class IsolationPlayer:
         positive value large enough to allow the function to return before the
         timer expires.
     """
-    def __init__(self, search_depth=4, score_fn=custom_score, timeout=10.):
+    def __init__(self, search_depth=3, score_fn=custom_score, timeout=10.):
         self.search_depth = search_depth
         self.score = score_fn
         self.time_left = None
@@ -218,7 +249,7 @@ class MinimaxPlayer(IsolationPlayer):
         
         # check for time left
         if self.time_left() < self.TIMER_THRESHOLD:
-        	raise SearchTimeout()
+            raise SearchTimeout()
 
         # return (-1, -1) if no legal moves
         legal_moves = game.get_legal_moves()
@@ -257,7 +288,7 @@ class MinimaxPlayer(IsolationPlayer):
 
     	# check for time left
     	if self.time_left() < self.TIMER_THRESHOLD:
-        	raise SearchTimeout()
+            raise SearchTimeout()
 
         # return state score for base case (terminal game state or max depth)
     	legal_moves = game.get_legal_moves()
@@ -293,11 +324,10 @@ class MinimaxPlayer(IsolationPlayer):
 
     	# check for time left
     	if self.time_left() < self.TIMER_THRESHOLD:
-        	raise SearchTimeout()
+            raise SearchTimeout()
 
         # return state score for base case (terminal game state or max depth)
-    	opponent = game.get_opponent(self)
-    	legal_moves = game.get_legal_moves(opponent)
+    	legal_moves = game.get_legal_moves()
     	if not legal_moves or depth == 0:
     		return self.score(game, self)
 
@@ -357,11 +387,12 @@ class AlphaBetaPlayer(IsolationPlayer):
             # raised when the timer is about to expire.
             depth = 0
             best_move = (-1, -1)
-            while time_left() > 0.1:
+            while time_left() > 1:
                 best_move = self.alphabeta(game, depth)
                 depth += 1
                 print(depth, best_move)
             return best_move
+            # return self.alphabeta(game, self.search_depth)
 
         except SearchTimeout:
             pass  # Handle any actions required after timeout as needed
@@ -420,15 +451,6 @@ class AlphaBetaPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
              raise SearchTimeout()
 
-        # Store alpha beta variables in an empty class instance to ensure
-        # access in local namespaces
-        """class ScopeFree:
-        	pass
-
-        bounds = ScopeFree()
-        bounds.alpha = alpha
-        bounds.beta = beta"""
-
         # return (-1, -1) if no legal moves
         legal_moves = game.get_legal_moves(self)
         if not legal_moves:
@@ -471,7 +493,6 @@ class AlphaBetaPlayer(IsolationPlayer):
     		if value >= beta:
     			return value
     		alpha = max(alpha, value)
-    		# print("Max:", value, bounds.alpha, bounds.beta) # print bounds for debugging
     	return value
 
     def min_value(self, game, depth, alpha, beta):
@@ -493,5 +514,4 @@ class AlphaBetaPlayer(IsolationPlayer):
     		if value <= alpha:
     			return value
     		beta = min(beta, value)
-    		# print("Min:", value, alpha, beta) # print bounds for debugging
     	return value
