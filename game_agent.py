@@ -103,14 +103,7 @@ def custom_score_3(game, player):
     """
     # TODO: finish this function!
 
-    if game.is_loser(player):
-        return float("-inf")
-    if game.is_winner(player):
-        return float("inf")
-
-    return float(len(game.get_legal_moves(player)))
-
-    """blank_spaces = len(game.get_blank_spaces())
+    blank_spaces = len(game.get_blank_spaces())
 
     if blank_spaces > 35:
     	return custom_score(game, player)
@@ -124,7 +117,7 @@ def custom_score_3(game, player):
 
     	own_moves = len(game.get_legal_moves(player))
     	opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
-    	return float((2*own_moves) - (opp_moves))"""
+    	return float((2*own_moves) - (opp_moves))
 
 
 class IsolationPlayer:
@@ -392,7 +385,6 @@ class AlphaBetaPlayer(IsolationPlayer):
                 depth += 1
                 print(depth, best_move)
             return best_move
-            # return self.alphabeta(game, self.search_depth)
 
         except SearchTimeout:
             pass  # Handle any actions required after timeout as needed
@@ -464,16 +456,6 @@ class AlphaBetaPlayer(IsolationPlayer):
         		alpha = value
         		best_move = move
         return best_move
-
-        """# return move with max state score among opponent's min state scores
-        max_value = self.max_value(game, depth, alpha, beta)
-        # print(max_value)
-        for move in legal_moves:
-        	# print(move)
-        	value = self.min_value(game.forecast_move(move), depth-1, alpha, beta)
-        	if value == max_value:
-        		print(alpha, beta) # print bounds for debugging
-        		return move"""
 
     def max_value(self, game, depth, alpha, beta):
     	# check for time left
